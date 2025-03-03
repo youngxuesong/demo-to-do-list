@@ -1,0 +1,269 @@
+/* 主题切换和任务管理增强功能样式 */
+
+/* CSS变量定义 */
+:root {
+    --body-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    --container-bg: #fff;
+    --text-color: #333;
+    --header-color: #2c3e50;
+    --quote-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    --todo-item-bg: #f8f9fa;
+    --todo-border-color: #4dabf7;
+    --completed-bg: #e8f5e9;
+    --completed-border-color: #66bb6a;
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid var(--header-color);
+    color: var(--header-color);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.theme-toggle:hover {
+    background-color: var(--header-color);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+/* 主题过渡动画 */
+.theme-transition {
+    transition: all 0.3s ease;
+}
+
+body {
+    background: var(--body-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.container {
+    background-color: var(--container-bg);
+    transition: all 0.3s ease;
+}
+
+/* 任务增强功能样式 */
+.task-enhancements {
+    margin-bottom: 20px;
+}
+
+.task-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.task-option {
+    position: relative;
+}
+
+.option-toggle {
+    background: transparent;
+    border: 1px solid #e9ecef;
+    color: #6c757d;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.option-toggle:hover {
+    background-color: #f8f9fa;
+    color: #4dabf7;
+    border-color: #4dabf7;
+}
+
+.option-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--container-bg);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    min-width: 200px;
+    z-index: 1000;
+    display: none;
+    margin-top: 5px;
+}
+
+.option-dropdown.show {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-title {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* 优先级选项 */
+.priority-options {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.priority-btn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.priority-btn:hover {
+    background-color: #f8f9fa;
+}
+
+/* 日期选择 */
+.due-date-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.quick-dates {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.quick-date-btn {
+    background: transparent;
+    border: 1px solid #e9ecef;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-date-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #4dabf7;
+    color: #4dabf7;
+}
+
+/* 分类选项 */
+.category-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+}
+
+.category-btn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.category-btn:hover {
+    background-color: #f8f9fa;
+}
+
+/* 已选择的选项显示 */
+.selected-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.selected-option {
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    padding: 4px 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.remove-option {
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-option:hover {
+    color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.no-options-selected {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+/* 任务详情展开样式 */
+.todo-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e9ecef;
+    font-size: 14px;
+    color: #6c757d;
+    display: none;
+}
+
+.todo-item.expanded .todo-details {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; max-height: 0; }
+    to { opacity: 1; max-height: 200px; }
+}

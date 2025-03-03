@@ -1,0 +1,91 @@
+<!-- index.wxml -->
+<view class="container {{theme}}">
+  <view class="header">
+    <view class="title">
+      <text class="iconfont icon-clipboard"></text>
+      <text>待办事项清单</text>
+    </view>
+    <view class="app-description">记录您的日常任务，提高工作效率</view>
+    <view class="clock-container">
+      <text class="iconfont icon-clock"></text>
+      <text id="current-time">{{currentTime}}</text>
+    </view>
+  </view>
+  
+  <view class="quote-container">
+    <text class="iconfont icon-quote-left quote-icon"></text>
+    <text class="quote-text">{{quoteText}}</text>
+    <text class="iconfont icon-quote-right quote-icon"></text>
+    <button class="refresh-quote" bindtap="refreshQuote">
+      <text class="iconfont icon-sync"></text>
+    </button>
+  </view>
+  
+  <form class="todo-form" bindsubmit="addTodo">
+    <input type="text" class="todo-input" name="todo" placeholder="添加新的待办事项..." />
+    <button form-type="submit" class="add-button">
+      <text class="iconfont icon-plus"></text> 添加
+    </button>
+  </form>
+  
+  <view class="filters">
+    <view class="filter-btn {{currentFilter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="filterTodos">全部</view>
+    <view class="filter-btn {{currentFilter === 'active' ? 'active' : ''}}" data-filter="active" bindtap="filterTodos">未完成</view>
+    <view class="filter-btn {{currentFilter === 'completed' ? 'active' : ''}}" data-filter="completed" bindtap="filterTodos">已完成</view>
+  </view>
+  
+  <view class="todo-container">
+    <scroll-view scroll-y class="todo-list" wx:if="{{todos.length > 0}}">
+      <view wx:for="{{filteredTodos}}" wx:key="id" class="todo-item {{item.completed ? 'completed' : ''}}">
+        <checkbox class="todo-checkbox" checked="{{item.completed}}" bindtap="toggleTodo" data-id="{{item.id}}"/>
+        <text class="todo-text">{{item.text}}</text>
+        <text class="delete-btn iconfont icon-close" bindtap="deleteTodo" data-id="{{item.id}}"></text>
+      </view>
+    </scroll-view>
+    
+    <view class="empty-state" wx:if="{{todos.length === 0}}">
+      <text class="iconfont icon-clipboard-check empty-icon"></text>
+      <text>暂无待办事项</text>
+      <text class="empty-hint">添加一些任务开始规划您的一天吧</text>
+    </view>
+  </view>
+  
+  <view class="todo-stats">
+    <text class="items-left">{{activeCount}} 项待办</text>
+    <button class="clear-completed" bindtap="clearCompleted">
+      <text class="iconfont icon-trash"></text> 清除已完成
+    </button>
+  </view>
+  
+  <view class="exchange-rates-section">
+    <view class="exchange-rates-header">
+      <text class="section-title">
+        <text class="iconfont icon-exchange"></text> 实时汇率
+      </text>
+      <view class="exchange-rates-info">
+        <text>更新时间: {{lastUpdatedTime}}</text>
+        <button class="refresh-rates" bindtap="refreshRates">
+          <text class="iconfont icon-sync"></text>
+        </button>
+      </view>
+    </view>
+    <view class="exchange-rates-container">
+      <view class="exchange-rates-list">
+        <view wx:for="{{exchangeRates}}" wx:key="pair" class="rate-item">
+          <text class="rate-name">{{item.name}}</text>
+          <text class="rate-value">{{item.value}}</text>
+        </view>
+      </view>
+      <text class="exchange-rates-note">{{exchangeRatesNote}}</text>
+    </view>
+  </view>
+  
+  <view class="qrcode-section">
+    <text class="section-title">关注我们</text>
+    <view class="qrcode-container">
+      <image src="/images/qrcode.png" mode="aspectFit" class="qrcode-image"></image>
+      <text class="qrcode-hint">扫描二维码，关注公众号
+获取更多效率提升技巧</text>
+    </view>
+  </view>
+</view>

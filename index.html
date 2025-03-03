@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待办事项清单</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clipboard-list"></i> 待办事项清单</h1>
+            <p class="app-description">记录您的日常任务，提高工作效率</p>
+            <div class="clock-container">
+                <i class="far fa-clock"></i>
+                <span id="current-time">加载中...</span>
+            </div>
+        </header>
+        
+        <div class="quote-container" id="quote-container">
+            <i class="fas fa-quote-left quote-icon"></i>
+            <p id="quote-text" class="quote-text">加载中...</p>
+            <i class="fas fa-quote-right quote-icon"></i>
+            <button id="refresh-quote" title="刷新名言"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        
+        <form class="todo-form" id="todo-form">
+            <input type="text" id="todo-input" placeholder="添加新的待办事项..." autocomplete="off">
+            <button type="submit" id="add-button"><i class="fas fa-plus"></i> 添加</button>
+        </form>
+        
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="active">未完成</button>
+            <button class="filter-btn" data-filter="completed">已完成</button>
+        </div>
+        
+        <div class="todo-container">
+            <ul id="todo-list"></ul>
+            
+            <div class="empty-state" id="empty-state">
+                <i class="fas fa-clipboard-check empty-icon"></i>
+                <p>暂无待办事项</p>
+                <p class="empty-hint">添加一些任务开始规划您的一天吧</p>
+            </div>
+        </div>
+        
+        <div class="todo-stats">
+            <span id="items-left">0 项待办</span>
+            <button id="clear-completed"><i class="fas fa-trash-alt"></i> 清除已完成</button>
+        </div>
+        
+        <div class="exchange-rates-section">
+            <div class="exchange-rates-header">
+                <h3><i class="fas fa-exchange-alt"></i> 实时汇率</h3>
+                <div class="exchange-rates-info">
+                    <span>更新时间: <span id="last-updated-time">--:--:--</span></span>
+                    <button id="refresh-rates" title="刷新汇率"><i class="fas fa-sync-alt"></i></button>
+                </div>
+            </div>
+            <div id="exchange-rates-container" class="exchange-rates-container">
+                <ul id="exchange-rates-list" class="exchange-rates-list"></ul>
+                <p id="exchange-rates-note" class="exchange-rates-note"></p>
+            </div>
+        </div>
+
+        
+        <div class="qrcode-section">
+            <h3>关注我们</h3>
+            <div class="qrcode-container">
+                <img src="images/qrcode.png" alt="公众号二维码" class="qrcode-image">
+                <p class="qrcode-hint">扫描二维码，关注公众号<br>获取更多效率提升技巧</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/exchange.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/task-manager.js"></script>
+    <script>
+        // 获取DOM元素
+        const todoForm = document.getElementById('todo-form');
+        const todoInput = document.getElementById('todo-input');
+        const todoList = document.getElementById('todo-list');
+        const itemsLeft = document.getElementById('items-left');
+        const clearCompletedBtn = document.getElementById('clear-completed');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const emptyState = document.getElementById('empty-state');
+        const currentTimeElement = document.getElementById('current-time');
+        const quoteTextElement = document.getElementById('quote-text');
+        const refreshQuoteBtn = document.getElementById('refresh-quote');
+        
+        // 备用心灵鸡汤数组（仅在API请求失败时使用）
+        const fallbackQuotes = [
+            "种一棵树最好的时间是十年前，现在是现在。",
+            "不要等待机会，而要创造机会。",
+            "成功不是将来才有的，而是从决定去做的那一刻起，持续累积而成。"
+        ];
+        
+        // 从API获取心灵鸡汤
+        async function fetchQuoteFromAPI() {
+            try {
+                // 显示加载状态
+                quoteTextElement.textContent = "加载中...";
+                
+                // 设置超时，确保API响应及时
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+                
+                // 使用一言API获取随机名言
+                const response = await fetch('https://v1.hitokoto.cn', {
+                    signal: controller.signal
+                });
+                
+                // 清除超时
+                clearTimeout(timeoutId);
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error(`API响应错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 返回获取到的名言
+                return data.hitokoto;
+            } catch (error) {
+                console.error('获取名言失败:', error);
+                // 请求失败时返回备用名言
+                return getFallbackQuote();
+            }
+        }
+        
+        // 获取备用名言
+        function getFallbackQuote() {
+            const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+            return fallbackQuotes[randomIndex];
+        }
+        
+        // 更新心灵鸡汤
+        async function updateQuote() {
+            // 显示加载状态并添加加载动画
+            quoteTextElement.textContent = "加载中...";
+            refreshQuoteBtn.classList.add('rotating');
+            
+            try {
+                const quote = await fetchQuoteFromAPI();
+                quoteTextElement.textContent = quote;
+            } catch (error) {
+                console.error('更新名言失败:', error);
+                quoteTextElement.textContent = '暂时无法获取名言，请稍后再试';
+            } finally {
+                // 无论成功失败，都移除加载动画
+                refreshQuoteBtn.classList.remove('rotating');
+            }
+        }
+        
+        // 初始化待办事项数组
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+        let currentFilter = 'all';
+        
+        // 渲染待办事项列表
+        function renderTodos() {
+            // 清空列表
+            todoList.innerHTML = '';
+            
+            // 根据当前过滤条件筛选待办事项
+            const filteredTodos = todos.filter(todo => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'active') return !todo.completed;
+                if (currentFilter === 'completed') return todo.completed;
+                return true;
+            });
+            
+            // 显示或隐藏空状态
+            if (todos.length === 0) {
+                emptyState.style.display = 'flex';
+            } else {
+                emptyState.style.display = 'none';
+            }
+            
+            // 渲染筛选后的待办事项
+            filteredTodos.forEach(todo => {
+                const todoItem = document.createElement('li');
+                todoItem.classList.add('todo-item');
+                if (todo.completed) {
+                    todoItem.classList.add('completed');
+                }
+                
+                todoItem.innerHTML = `
+                    <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
+                    <span class="todo-text">${todo.text}</span>
+                    <button class="delete-btn" title="删除"><i class="fas fa-times"></i></button>
+                `;
+                
+                // 添加事件监听器
+                const checkbox = todoItem.querySelector('.todo-checkbox');
+                checkbox.addEventListener('change', () => toggleTodo(todo.id));
+                
+                const deleteBtn = todoItem.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+                
+                todoList.appendChild(todoItem);
+            });
+            
+            // 更新剩余待办事项数量
+            const activeTodos = todos.filter(todo => !todo.completed);
+            itemsLeft.textContent = `${activeTodos.length} 项待办`;
+        }
+        
+        // 添加新的待办事项
+        function addTodo(text) {
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+            
+            todos.unshift(newTodo); // 使用unshift而不是push，将新项目添加到数组开头
+            saveTodos();
+            renderTodos();
+            
+            // 添加动画效果
+            const firstItem = todoList.firstElementChild; // 获取第一个元素而不是最后一个
+            if (firstItem) {
+                firstItem.classList.add('new-item');
+                setTimeout(() => {
+                    firstItem.classList.remove('new-item');
+                }, 500);
+            }
+        }
+        
+        // 切换待办事项的完成状态
+        function toggleTodo(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) {
+                    return { ...todo, completed: !todo.completed };
+                }
+                return todo;
+            });
+            
+            saveTodos();
+            renderTodos();
+        }
+        
+        // 删除待办事项
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveTodos();
+            renderTodos();
+        }
+        
+        // 清除已完成的待办事项
+        function clearCompleted() {
+            todos = todos.filter(todo => !todo.completed);
+            saveTodos();
+            renderTodos();
+        }
+        
+        // 保存待办事项到本地存储
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+        
+        // 设置过滤器
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // 更新过滤按钮的激活状态
+            filterBtns.forEach(btn => {
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            renderTodos();
+        }
+        
+        // 事件监听器
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = todoInput.value.trim();
+            
+            if (text) {
+                addTodo(text);
+                todoInput.value = '';
+                todoInput.focus();
+            }
+        });
+        
+        clearCompletedBtn.addEventListener('click', clearCompleted);
+        
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const filter = btn.getAttribute('data-filter');
+                setFilter(filter);
+            });
+        });
+        
+        // 添加刷新名言按钮的事件监听器
+        refreshQuoteBtn.addEventListener('click', updateQuote);
+        
+        // 初始化应用
+        renderTodos();
+        updateQuote();
+        initTaskManager();
+        
+        // 更新时间的函数
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // 初始更新时间
+        updateCurrentTime();
+        
+        // 设置定时器，每秒更新一次时间
+        setInterval(updateCurrentTime, 1000);
+    </script>
+
+</body>
+</html>
